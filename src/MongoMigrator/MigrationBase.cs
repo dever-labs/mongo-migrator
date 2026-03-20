@@ -17,7 +17,7 @@ namespace DeverLabs.MongoMigrator;
 ///     : MigrationBase(database, logger)
 /// {
 ///     public override long Version =&gt; 20240101_120000L;
-///     protected override string MigrationName =&gt; nameof(AddUserIndexMigration);
+///     // MigrationName defaults to "AddUserIndexMigration" — override only if you want something else
 ///
 ///     protected override async Task ApplyMigrationAsync()
 ///     {
@@ -55,8 +55,11 @@ public abstract class MigrationBase : IMigration
     /// <inheritdoc/>
     public abstract long Version { get; }
 
-    /// <summary>A human-readable name for this migration, used in logs and history.</summary>
-    protected abstract string MigrationName { get; }
+    /// <summary>
+    /// A human-readable name for this migration, used in logs and history.
+    /// Defaults to the concrete class name. Override to provide a custom name.
+    /// </summary>
+    protected virtual string MigrationName => GetType().Name;
 
     /// <summary>The MongoDB database instance available to subclasses.</summary>
     protected IMongoDatabase Database { get; }

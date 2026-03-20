@@ -47,7 +47,7 @@ public sealed class AddUserEmailIndexMigration(
 {
     // Use a sortable long — a compact timestamp works well: YYYYMMdd_HHmmss
     public override long Version => 20240101_120000L;
-    protected override string MigrationName => nameof(AddUserEmailIndexMigration);
+    // MigrationName defaults to "AddUserEmailIndexMigration" — override only if you want something else
 
     protected override async Task ApplyMigrationAsync()
     {
@@ -233,7 +233,7 @@ protected override async Task RollbackMigrationAsync()
 | Member | Description |
 |--------|-------------|
 | `Version` | Abstract. Unique version number — determines execution order. |
-| `MigrationName` | Abstract. Human-readable name used in logs and history. |
+| `MigrationName` | Virtual. Defaults to the concrete class name. Override to use a custom name. |
 | `ApplyMigrationAsync()` | Abstract. Forward migration logic. |
 | `RollbackMigrationAsync()` | Abstract. Reverse migration logic. |
 | `Database` | The `IMongoDatabase` passed at construction. |
