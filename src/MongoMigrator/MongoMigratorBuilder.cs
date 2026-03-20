@@ -31,6 +31,39 @@ public sealed class MongoMigratorBuilder
     }
 
     /// <summary>
+    /// Creates a <see cref="MongoClient"/> from <paramref name="connectionString"/> and uses
+    /// <paramref name="databaseName"/> as the target database. <b>Required.</b>
+    /// </summary>
+    /// <param name="connectionString">
+    /// A MongoDB connection string, e.g. <c>"mongodb://localhost:27017"</c> or a full Atlas URI.
+    /// </param>
+    /// <param name="databaseName">The name of the database to run migrations against.</param>
+    public MongoMigratorBuilder UseDatabase(string connectionString, string databaseName)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new ArgumentException("Must not be null or whitespace.", nameof(connectionString));
+        if (string.IsNullOrWhiteSpace(databaseName))
+            throw new ArgumentException("Must not be null or whitespace.", nameof(databaseName));
+
+        _database = new MongoClient(connectionString).GetDatabase(databaseName);
+        return this;
+    }
+
+    /// <summary>
+    /// Creates a <see cref="MongoClient"/> from <paramref name="settings"/> and uses
+    /// <paramref name="databaseName"/> as the target database. <b>Required.</b>
+    /// </summary>
+    public MongoMigratorBuilder UseDatabase(MongoClientSettings settings, string databaseName)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (string.IsNullOrWhiteSpace(databaseName))
+            throw new ArgumentException("Must not be null or whitespace.", nameof(databaseName));
+
+        _database = new MongoClient(settings).GetDatabase(databaseName);
+        return this;
+    }
+
+    /// <summary>
     /// Adds one or more assemblies to scan for <see cref="IMigration"/> implementations.
     /// Call this at least once. Multiple calls accumulate assemblies.
     /// </summary>
