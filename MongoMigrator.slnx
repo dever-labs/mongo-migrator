@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MongoMigrator/MongoMigrator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MongoMigrator.Tests/MongoMigrator.Tests.csproj" />
+  </Folder>
+</Solution>
