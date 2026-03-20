@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-    <!-- net11.0 added automatically when built with .NET 11+ SDK -->
-    <TargetFrameworks Condition="$([System.Version]::Parse('$(NETCoreSdkVersion)').Major) &gt;= 11">$(TargetFrameworks);net11.0</TargetFrameworks>
+    <!-- Strip any pre-release suffix before parsing, then add net11.0 when SDK major >= 11 -->
+    <_SdkMajorVersion>$(NETCoreSdkVersion.Split('-')[0].Split('.')[0])</_SdkMajorVersion>
+    <TargetFrameworks Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(_SdkMajorVersion).0', '11.0'))">$(TargetFrameworks);net11.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
