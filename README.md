@@ -92,6 +92,34 @@ DB_MIGRATION_ROLLBACK_VERSION=20240101_120000
 
 The application will call `RollbackMigrationAsync()` on the matching migration and remove it from `MigrationHistory`, then exit normally.
 
+## Manual Migration Control
+
+Set `RunOnStartup = false` to skip the hosted service and drive migrations yourself via `IMigrationRunner`:
+
+```csharp
+builder.Services.AddMongoMigrations(
+    database,
+    options => options.RunOnStartup = false,
+    typeof(Program).Assembly);
+```
+
+Then inject `IMigrationRunner` wherever you need it:
+
+```csharp
+// e.g. a minimal API endpoint, a CLI command, or a custom background job
+app.MapPost("/admin/migrate", async (IMigrationRunner runner) =>
+{
+    await runner.MigrateAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/admin/rollback/{version:long}", async (long version, IMigrationRunner runner) =>
+{
+    await runner.RollbackAsync(version);
+    return Results.Ok();
+});
+```
+
 ## Advanced Configuration
 
 ```csharp
@@ -215,6 +243,7 @@ protected override async Task RollbackMigrationAsync()
 | `HistoryCollectionName` | `"MigrationHistory"` | MongoDB collection for tracking applied migrations. |
 | `RollbackEnvironmentVariable` | `"DB_MIGRATION_ROLLBACK"` | Env var that activates rollback mode when set to `"1"`. |
 | `RollbackVersionEnvironmentVariable` | `"DB_MIGRATION_ROLLBACK_VERSION"` | Env var containing the version to roll back. |
+| `RunOnStartup` | `true` | When `false`, no hosted service is registered. Use `IMigrationRunner` directly. |
 
 ## License
 

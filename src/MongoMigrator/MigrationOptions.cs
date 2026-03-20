@@ -22,4 +22,15 @@ public sealed class MigrationOptions
     /// Defaults to <c>"DB_MIGRATION_ROLLBACK_VERSION"</c>.
     /// </summary>
     public string RollbackVersionEnvironmentVariable { get; set; } = "DB_MIGRATION_ROLLBACK_VERSION";
+
+    /// <summary>
+    /// When <c>true</c> (the default), a hosted service is registered that automatically runs
+    /// migrations on application startup before the host begins accepting traffic.
+    /// <para>
+    /// Set to <c>false</c> if you want to control when migrations run yourself — e.g. invoke
+    /// <see cref="IMigrationRunner"/> manually, run migrations in a separate tool, or integrate
+    /// with a custom deployment pipeline.
+    /// </para>
+    /// </summary>
+    public bool RunOnStartup { get; set; } = true;
 }

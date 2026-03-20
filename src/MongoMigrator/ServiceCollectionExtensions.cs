@@ -50,6 +50,9 @@ public static class ServiceCollectionExtensions
         if (assemblies.Length == 0)
             throw new ArgumentException("At least one assembly must be provided for migration discovery.", nameof(assemblies));
 
+        // Evaluate eagerly so RunOnStartup is available at registration time.
+        var options = new MigrationOptions();
+        configure(options);
         services.Configure<MigrationOptions>(configure);
 
         services.AddSingleton(database);
@@ -63,7 +66,8 @@ public static class ServiceCollectionExtensions
         foreach (var type in migrationTypes)
             services.AddTransient(typeof(IMigration), type);
 
-        services.AddHostedService<MigrationService>();
+        if (options.RunOnStartup)
+            services.AddHostedService<MigrationService>();
 
         return services;
     }

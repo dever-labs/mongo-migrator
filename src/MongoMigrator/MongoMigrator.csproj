@@ -25,6 +25,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <RootNamespace>DeverLabs.MongoMigrator</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
