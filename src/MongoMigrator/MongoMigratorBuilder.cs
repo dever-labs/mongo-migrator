@@ -16,7 +16,7 @@ public sealed class MongoMigratorBuilder
     private string _rollbackEnvVar = "DB_MIGRATION_ROLLBACK";
     private string _rollbackVersionEnvVar = "DB_MIGRATION_ROLLBACK_VERSION";
 
-    internal IServiceCollection Services { get; }
+    private IServiceCollection Services { get; }
 
     internal MongoMigratorBuilder(IServiceCollection services) => Services = services;
 
@@ -26,10 +26,8 @@ public sealed class MongoMigratorBuilder
     /// </summary>
     public MongoMigratorBuilder UseDatabase(string connectionString, string databaseName)
     {
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new ArgumentException("Must not be null or whitespace.", nameof(connectionString));
-        if (string.IsNullOrWhiteSpace(databaseName))
-            throw new ArgumentException("Must not be null or whitespace.", nameof(databaseName));
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+        ArgumentException.ThrowIfNullOrWhiteSpace(databaseName);
 
         _database = new MongoClient(connectionString).GetDatabase(databaseName);
         return this;
@@ -42,8 +40,7 @@ public sealed class MongoMigratorBuilder
     public MongoMigratorBuilder UseDatabase(MongoClientSettings settings, string databaseName)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        if (string.IsNullOrWhiteSpace(databaseName))
-            throw new ArgumentException("Must not be null or whitespace.", nameof(databaseName));
+        ArgumentException.ThrowIfNullOrWhiteSpace(databaseName);
 
         _database = new MongoClient(settings).GetDatabase(databaseName);
         return this;
@@ -95,10 +92,8 @@ public sealed class MongoMigratorBuilder
         string rollbackVariable,
         string rollbackVersionVariable)
     {
-        if (string.IsNullOrWhiteSpace(rollbackVariable))
-            throw new ArgumentException("Must not be null or whitespace.", nameof(rollbackVariable));
-        if (string.IsNullOrWhiteSpace(rollbackVersionVariable))
-            throw new ArgumentException("Must not be null or whitespace.", nameof(rollbackVersionVariable));
+        ArgumentException.ThrowIfNullOrWhiteSpace(rollbackVariable);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rollbackVersionVariable);
 
         _rollbackEnvVar = rollbackVariable;
         _rollbackVersionEnvVar = rollbackVersionVariable;
