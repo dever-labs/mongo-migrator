@@ -12,21 +12,12 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <example>
     /// <code>
-    /// // Manual control — inject IMigrationRunner yourself
-    /// services.AddMongoMigrations(m => m
-    ///     .UseDatabase(database)
-    ///     .ScanAssembly(typeof(Program).Assembly));
-    ///
-    /// // Automatic — migrations run before the host accepts traffic
-    /// services.AddMongoMigrations(m => m
-    ///     .UseDatabase(database)
+    /// builder.Services.AddMongoMigrations(m => m
+    ///     .UseDatabase("mongodb://localhost:27017/mydb", "mydb")
     ///     .ScanAssembly(typeof(Program).Assembly)
     ///     .AutoMigrate());
     /// </code>
     /// </example>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">A callback that configures the <see cref="MongoMigratorBuilder"/>.</param>
-    /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
     public static IServiceCollection AddMongoMigrations(
         this IServiceCollection services,
         Action<MongoMigratorBuilder> configure)
@@ -40,4 +31,3 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
-

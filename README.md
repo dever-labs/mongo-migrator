@@ -37,19 +37,19 @@ dotnet add package DeverLabs.MongoMigrator
 ### 1. Register in `Program.cs`
 
 ```csharp
-// Simplest — pass connection string and database name directly
+// Connection string + database name directly
 builder.Services.AddMongoMigrations(m => m
     .UseDatabase("mongodb://localhost:27017", "mydb")
     .ScanAssembly(typeof(Program).Assembly)
     .AutoMigrate());
 
-// From configuration
+// From configuration (read the connection string yourself)
 builder.Services.AddMongoMigrations(m => m
-    .UseDatabase(builder.Configuration.GetConnectionString("Mongo")!, "mydb")
+    .UseDatabase(builder.Configuration.GetConnectionString("MongoDB")!, "mydb")
     .ScanAssembly(typeof(Program).Assembly)
     .AutoMigrate());
 
-// Or bring your own IMongoDatabase if you already have one
+// Bring your own IMongoDatabase if you already have one
 builder.Services.AddMongoMigrations(m => m
     .UseDatabase(existingMongoDatabase)
     .ScanAssembly(typeof(Program).Assembly)
@@ -243,7 +243,7 @@ protected override async Task RollbackMigrationAsync()
 
 | Method | Description |
 |--------|-------------|
-| `UseDatabase(connectionString, databaseName)` | **Required.** Creates a `MongoClient` internally — simplest setup. |
+| `UseDatabase(connectionString, databaseName)` | **Required.** Creates a `MongoClient` internally. |
 | `UseDatabase(settings, databaseName)` | **Required.** Uses `MongoClientSettings` for advanced client configuration. |
 | `UseDatabase(IMongoDatabase)` | **Required.** Bring your own `IMongoDatabase` instance. |
 | `ScanAssembly(params assemblies)` | **Required.** Assemblies to scan for `IMigration` implementations. Chainable. |

@@ -82,4 +82,3 @@ public sealed class ServiceCollectionExtensionsTests
             .WithParameterName("configure");
     }
 }
-

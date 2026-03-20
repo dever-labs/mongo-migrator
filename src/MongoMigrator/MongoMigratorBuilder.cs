@@ -21,23 +21,9 @@ public sealed class MongoMigratorBuilder
     internal MongoMigratorBuilder(IServiceCollection services) => Services = services;
 
     /// <summary>
-    /// Sets the MongoDB database that migrations will operate against. <b>Required.</b>
-    /// </summary>
-    public MongoMigratorBuilder UseDatabase(IMongoDatabase database)
-    {
-        ArgumentNullException.ThrowIfNull(database);
-        _database = database;
-        return this;
-    }
-
-    /// <summary>
     /// Creates a <see cref="MongoClient"/> from <paramref name="connectionString"/> and uses
     /// <paramref name="databaseName"/> as the target database. <b>Required.</b>
     /// </summary>
-    /// <param name="connectionString">
-    /// A MongoDB connection string, e.g. <c>"mongodb://localhost:27017"</c> or a full Atlas URI.
-    /// </param>
-    /// <param name="databaseName">The name of the database to run migrations against.</param>
     public MongoMigratorBuilder UseDatabase(string connectionString, string databaseName)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -60,6 +46,16 @@ public sealed class MongoMigratorBuilder
             throw new ArgumentException("Must not be null or whitespace.", nameof(databaseName));
 
         _database = new MongoClient(settings).GetDatabase(databaseName);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets an existing <see cref="IMongoDatabase"/> instance. <b>Required.</b>
+    /// </summary>
+    public MongoMigratorBuilder UseDatabase(IMongoDatabase database)
+    {
+        ArgumentNullException.ThrowIfNull(database);
+        _database = database;
         return this;
     }
 
