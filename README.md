@@ -25,10 +25,16 @@ dotnet add package DeverLabs.MongoMigrator
 ### 1. Register in `Program.cs`
 
 ```csharp
-var mongoClient = new MongoClient(connectionString);
-var database = mongoClient.GetDatabase("mydb");
+// Migrations run automatically on startup (recommended for most apps)
+services.AddMongoMigrations(m => m
+    .UseDatabase(database)
+    .ScanAssembly(typeof(Program).Assembly)
+    .AutoMigrate());
 
-builder.Services.AddMongoMigrations(database, typeof(Program).Assembly);
+// Or keep control yourself — inject IMigrationRunner manually
+services.AddMongoMigrations(m => m
+    .UseDatabase(database)
+    .ScanAssembly(typeof(Program).Assembly));
 ```
 
 ### 2. Write a migration
@@ -94,16 +100,14 @@ The application will call `RollbackMigrationAsync()` on the matching migration a
 
 ## Manual Migration Control
 
-Set `RunOnStartup = false` to skip the hosted service and drive migrations yourself via `IMigrationRunner`:
+Omit `.AutoMigrate()` and inject `IMigrationRunner` wherever you need it:
 
 ```csharp
-builder.Services.AddMongoMigrations(
-    database,
-    options => options.RunOnStartup = false,
-    typeof(Program).Assembly);
+services.AddMongoMigrations(m => m
+    .UseDatabase(database)
+    .ScanAssembly(typeof(Program).Assembly));
+// No .AutoMigrate() — you're in control
 ```
-
-Then inject `IMigrationRunner` wherever you need it:
 
 ```csharp
 // e.g. a minimal API endpoint, a CLI command, or a custom background job
@@ -123,20 +127,12 @@ app.MapPost("/admin/rollback/{version:long}", async (long version, IMigrationRun
 ## Advanced Configuration
 
 ```csharp
-builder.Services.AddMongoMigrations(
-    database,
-    options =>
-    {
-        // Custom collection name for migration history
-        options.HistoryCollectionName = "MyMigrationHistory";
-
-        // Custom environment variable names for rollback control
-        options.RollbackEnvironmentVariable = "MY_APP_ROLLBACK";
-        options.RollbackVersionEnvironmentVariable = "MY_APP_ROLLBACK_VERSION";
-    },
-    typeof(Program).Assembly,
-    typeof(SomeOtherMarker).Assembly   // scan multiple assemblies
-);
+services.AddMongoMigrations(m => m
+    .UseDatabase(database)
+    .ScanAssembly(typeof(Program).Assembly)
+    .ScanAssembly(typeof(SomeOtherMarker).Assembly)   // scan multiple assemblies
+    .WithRollbackEnvironmentVariables("MY_APP_ROLLBACK", "MY_APP_ROLLBACK_VERSION")
+    .AutoMigrate());
 ```
 
 ## Migration Versioning Convention
@@ -221,8 +217,16 @@ protected override async Task RollbackMigrationAsync()
 
 | Method | Description |
 |--------|-------------|
-| `AddMongoMigrations(database, params assemblies)` | Register migrations, scanning the specified assemblies. |
-| `AddMongoMigrations(database, configure, params assemblies)` | Register with custom `MigrationOptions`. |
+| `AddMongoMigrations(Action<MongoMigratorBuilder>)` | Single entry point — configure everything via the fluent builder. |
+
+### `MongoMigratorBuilder`
+
+| Method | Description |
+|--------|-------------|
+| `UseDatabase(database)` | **Required.** The MongoDB database migrations operate against. |
+| `ScanAssembly(params assemblies)` | **Required.** Assemblies to scan for `IMigration` implementations. Chainable. |
+| `AutoMigrate()` | Registers a hosted service that runs migrations before the host accepts traffic. Omit for manual control. |
+| `WithRollbackEnvironmentVariables(rollbackVar, versionVar)` | Override the env var names used in rollback mode (defaults: `DB_MIGRATION_ROLLBACK`, `DB_MIGRATION_ROLLBACK_VERSION`). |
 
 ### `MigrationBase`
 
@@ -236,14 +240,11 @@ protected override async Task RollbackMigrationAsync()
 | `Logger` | The `ILogger` passed at construction. |
 | `CollectionExistsAsync(name)` | Helper — returns `true` if the collection already exists. |
 
-### `MigrationOptions`
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `HistoryCollectionName` | `"MigrationHistory"` | MongoDB collection for tracking applied migrations. |
-| `RollbackEnvironmentVariable` | `"DB_MIGRATION_ROLLBACK"` | Env var that activates rollback mode when set to `"1"`. |
-| `RollbackVersionEnvironmentVariable` | `"DB_MIGRATION_ROLLBACK_VERSION"` | Env var containing the version to roll back. |
-| `RunOnStartup` | `true` | When `false`, no hosted service is registered. Use `IMigrationRunner` directly. |
+> **Custom history collection name:** Pass a third argument to the base constructor:
+> ```csharp
+> : MigrationBase(database, logger, "MyMigrationHistory")
+> ```
+> Or create a shared abstract base in your project that sets it for all your migrations.
 
 ## License
 

@@ -16,54 +16,70 @@ public sealed class ServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddMongoMigrations(FakeDatabase(), typeof(ServiceCollectionExtensionsTests).Assembly);
+        services.AddMongoMigrations(m => m
+            .UseDatabase(FakeDatabase())
+            .ScanAssembly(typeof(ServiceCollectionExtensionsTests).Assembly));
 
         var provider = services.BuildServiceProvider();
         provider.GetService<IMigrationRunner>().Should().NotBeNull();
     }
 
     [Fact]
-    public void AddMongoMigrations_ByDefault_RegistersHostedService()
+    public void AddMongoMigrations_WithoutAutoMigrate_DoesNotRegisterHostedService()
     {
         var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddMongoMigrations(FakeDatabase(), typeof(ServiceCollectionExtensionsTests).Assembly);
-
-        services.Should().Contain(sd => sd.ServiceType == typeof(IHostedService));
-    }
-
-    [Fact]
-    public void AddMongoMigrations_WhenRunOnStartupFalse_DoesNotRegisterHostedService()
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddMongoMigrations(
-            FakeDatabase(),
-            options => options.RunOnStartup = false,
-            typeof(ServiceCollectionExtensionsTests).Assembly);
+        services.AddMongoMigrations(m => m
+            .UseDatabase(FakeDatabase())
+            .ScanAssembly(typeof(ServiceCollectionExtensionsTests).Assembly));
 
         services.Should().NotContain(sd => sd.ServiceType == typeof(IHostedService));
     }
 
     [Fact]
-    public void AddMongoMigrations_WithNoAssemblies_ThrowsArgumentException()
+    public void AddMongoMigrations_WithAutoMigrate_RegistersHostedService()
     {
         var services = new ServiceCollection();
+        services.AddMongoMigrations(m => m
+            .UseDatabase(FakeDatabase())
+            .ScanAssembly(typeof(ServiceCollectionExtensionsTests).Assembly)
+            .AutoMigrate());
 
-        var act = () => services.AddMongoMigrations(FakeDatabase());
-
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("assemblies");
+        services.Should().Contain(sd => sd.ServiceType == typeof(IHostedService));
     }
 
     [Fact]
-    public void AddMongoMigrations_WithNullDatabase_ThrowsArgumentNullException()
+    public void AddMongoMigrations_WithoutUseDatabase_ThrowsOnBuild()
     {
         var services = new ServiceCollection();
 
-        var act = () => services.AddMongoMigrations(null!, typeof(ServiceCollectionExtensionsTests).Assembly);
+        var act = () => services.AddMongoMigrations(m => m
+            .ScanAssembly(typeof(ServiceCollectionExtensionsTests).Assembly));
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*UseDatabase*");
+    }
+
+    [Fact]
+    public void AddMongoMigrations_WithoutScanAssembly_ThrowsOnBuild()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddMongoMigrations(m => m
+            .UseDatabase(FakeDatabase()));
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ScanAssembly*");
+    }
+
+    [Fact]
+    public void AddMongoMigrations_WithNullConfigure_ThrowsArgumentNullException()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddMongoMigrations(null!);
 
         act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("database");
+            .WithParameterName("configure");
     }
 }
+

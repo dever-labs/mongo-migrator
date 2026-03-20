@@ -1,7 +1,6 @@
 using DeverLabs.MongoMigrator;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace MongoMigrator.Tests;
@@ -10,12 +9,15 @@ public sealed class MigrationServiceTests
 {
     private static MigrationService CreateService(
         IMigrationRunner runner,
-        Action<MigrationOptions>? configure = null)
-    {
-        var options = new MigrationOptions();
-        configure?.Invoke(options);
-        return new MigrationService(runner, Options.Create(options), NullLogger<MigrationService>.Instance);
-    }
+        string rollbackEnvVar = "DB_MIGRATION_ROLLBACK",
+        string rollbackVersionEnvVar = "DB_MIGRATION_ROLLBACK_VERSION") =>
+        new(runner,
+            new MigrationConfiguration
+            {
+                RollbackEnvironmentVariable = rollbackEnvVar,
+                RollbackVersionEnvironmentVariable = rollbackVersionEnvVar
+            },
+            NullLogger<MigrationService>.Instance);
 
     [Fact]
     public async Task StartAsync_ByDefault_CallsMigrateAsync()
@@ -84,11 +86,7 @@ public sealed class MigrationServiceTests
         try
         {
             var runner = Substitute.For<IMigrationRunner>();
-            var service = CreateService(runner, opts =>
-            {
-                opts.RollbackEnvironmentVariable = "CUSTOM_ROLLBACK";
-                opts.RollbackVersionEnvironmentVariable = "CUSTOM_ROLLBACK_VERSION";
-            });
+            var service = CreateService(runner, "CUSTOM_ROLLBACK", "CUSTOM_ROLLBACK_VERSION");
 
             await service.StartAsync(CancellationToken.None);
 
@@ -111,3 +109,4 @@ public sealed class MigrationServiceTests
             .Should().NotThrowAsync();
     }
 }
+
