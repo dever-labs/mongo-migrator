@@ -120,8 +120,10 @@ public sealed class MongoMigratorBuilder
         Services.AddTransient<IMigrationRunner, MigrationRunner>();
 
         var migrationTypes = _assemblies
-            .SelectMany(a => a.GetTypes())
-            .Where(t => t is { IsAbstract: false, IsClass: true } && typeof(IMigration).IsAssignableFrom(t))
+            .SelectMany(GetLoadableTypes)
+            .Where(t => t is { IsAbstract: false, IsClass: true }
+                        && !t.ContainsGenericParameters
+                        && typeof(IMigration).IsAssignableFrom(t))
             .Distinct();
 
         foreach (var type in migrationTypes)
@@ -129,5 +131,19 @@ public sealed class MongoMigratorBuilder
 
         if (_autoMigrate)
             Services.AddHostedService<MigrationService>();
+    }
+
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // If an assembly has missing optional dependencies, GetTypes() can throw.
+            // We still want to register any types that did successfully load.
+            return ex.Types.Where(t => t is not null)!;
+        }
     }
 }

@@ -17,7 +17,7 @@
     <PackageTags>mongodb;migrations;database;nosql;dotnet;schema</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/dever-labs/MongoMigrator</RepositoryUrl>
+    <RepositoryUrl>https://github.com/dever-labs/mongo-migrator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- Documentation & quality -->
